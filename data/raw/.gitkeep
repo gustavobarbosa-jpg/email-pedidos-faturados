@@ -1,0 +1,2 @@
+# Este arquivo mantém a pasta data/raw no repositório
+# Arquivos de dados são ignorados pelo .gitignore para proteger informações sensíveis
