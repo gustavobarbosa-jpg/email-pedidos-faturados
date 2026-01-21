@@ -43,7 +43,7 @@ Este pipeline automatiza completamente o processo de extração, transformação
 
 **Regras impostas**:
 - ✅ Modelo deve ser atualizado no mesmo dia
-- ⚠️ Se não estiver atualizado, envia email para admin@empresa.com.br
+- ⚠️ Se não estiver atualizado, envia email para gustavo.barbosa@vilanova.com.br e milena.danziger@vilanova.com.br
 - 🛑 Pipeline não executa com dados desatualizados
 
 ---
