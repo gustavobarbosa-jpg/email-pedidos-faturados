@@ -43,7 +43,7 @@ Este pipeline automatiza completamente o processo de extração, transformação
 
 **Regras impostas**:
 - ✅ Modelo deve ser atualizado no mesmo dia
-- ⚠️ Se não estiver atualizado, envia email para gustavo.barbosa@vilanova.com.br
+- ⚠️ Se não estiver atualizado, envia email para admin@empresa.com.br
 - 🛑 Pipeline não executa com dados desatualizados
 
 ---
@@ -182,7 +182,7 @@ SUMMARIZECOLUMNS(
    - **Personalização**: Nome e equipe do gerente
 
 3. **Especial para Equipe 200**:
-   - Email enviado para gustavo.barbosa@vilanova.com.br
+   - Email enviado para admin@empresa.com.br
    - Cópia automática também enviada
    - Aviso de não responder no corpo
 
@@ -458,7 +458,7 @@ Validação ← Orquestração ← Logs ← Monitoramento ← Estatísticas
 - 🛡️ **Segurança**: Scans automáticos
 
 ### 📞 Suporte
-- **Email**: gustavo.barbosa@vilanova.com.br
+- **Email**: admin@empresa.com.br
 - **WhatsApp**: (35) 99825-3791
 - **Issues**: GitHub Issues
 

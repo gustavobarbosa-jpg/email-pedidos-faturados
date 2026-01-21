@@ -29,7 +29,7 @@ class SemanticModelValidator:
         self.timezone = pytz.timezone('America/Sao_Paulo')  # Brazil timezone
         
         # Alert configuration
-        self.alert_recipient = "gustavo.barbosa@vilanova.com.br"
+        self.alert_recipient = "admin@empresa.com.br"  # Email de exemplo
         self.date_table = "UltimaAtualizacao"
         self.date_column = "UltimaAtualizacao"
     

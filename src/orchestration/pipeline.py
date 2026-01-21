@@ -173,10 +173,10 @@ class PipelineOrchestrator:
                 
                 # Send email (unless validate_only)
                 if not validate_only:
-                    # Override recipient for team 200 to send to gustavo.barbosa@vilanova.com.br
+                    # Override recipient for team 200 to send to example email
                     if manager['equipe'] == 200:
                         original_email = manager['email_gerente']
-                        manager['email_gerente'] = "gustavo.barbosa@vilanova.com.br"
+                        manager['email_gerente'] = "admin@empresa.com.br"  # Email de exemplo
                         self.logger.info(f"Overriding email for team 200", 
                                       original_email=original_email,
                                       new_email=manager['email_gerente'])
@@ -187,16 +187,16 @@ class PipelineOrchestrator:
                             transformed_data
                         )
                         
-                        # Send copy to gustavo.barbosa@vilanova.com.br
-                        self.logger.info(f"Sending copy to gustavo.barbosa@vilanova.com.br for team 200")
+                        # Send copy to admin@empresa.com.br
+                        self.logger.info(f"Sending copy to admin@empresa.com.br for team 200")
                         
                         # Create copy email message
                         from email.message import EmailMessage
                         import smtplib
                         
                         copy_msg = EmailMessage()
-                        copy_msg["From"] = "gustavo.barbosa@vilanova.com.br"
-                        copy_msg["To"] = "gustavo.barbosa@vilanova.com.br"
+                        copy_msg["From"] = "admin@empresa.com.br"
+                        copy_msg["To"] = "admin@empresa.com.br"
                         copy_msg["Subject"] = f"📋 CÓPIA - Relatório Equipe 200 - {manager['nome_gerente']}"
                         
                         copy_body = f"""
@@ -228,10 +228,10 @@ Não responda a este e-mail.
                         
                         # Send copy
                         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                            smtp.login("gustavo.barbosa@vilanova.com.br", "hmey ivvo virc cyty")
+                            smtp.login("admin@empresa.com.br", "senha_app_exemplo")  # Usar variáveis de ambiente
                             smtp.send_message(copy_msg)
                         
-                        self.logger.info(f"Copy sent successfully to gustavo.barbosa@vilanova.com.br")
+                        self.logger.info(f"Copy sent successfully to admin@empresa.com.br")
                     else:
                         self.email_service.send_manager_report(
                             manager, 

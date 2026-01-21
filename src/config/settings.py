@@ -33,8 +33,8 @@ class EmailConfig:
     """Email service configuration."""
     smtp_server: str = "smtp.gmail.com"
     smtp_port: int = 465
-    sender_email: str = os.getenv("EMAIL", "gustavo.barbosa@vilanova.com.br")
-    app_password: str = os.getenv("password_app", "")
+    sender_email: str = os.getenv("EMAIL", "admin@empresa.com.br")  # Email de exemplo
+    app_password: str = os.getenv("password_app", "")  # Usar App Password do Gmail
     use_ssl: bool = True
 
 
