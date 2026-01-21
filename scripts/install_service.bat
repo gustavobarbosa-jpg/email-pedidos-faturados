@@ -14,7 +14,7 @@ set SCRIPT_PATH=%~dp0schedule_pipeline.py
 set TASK_NAME=EmailReportsPipeline
 
 echo Criando tarefa agendada...
-schtasks /create /tn "%TASK_NAME%" /tr "python.exe \"%SCRIPT_PATH%\"" /sc daily /st 09:00 /f
+schtasks /create /tn "%TASK_NAME%" /tr "cmd /c \"cd /d %~dp0.. && scripts\schedule_pipeline.py\"" /sc daily /st 09:00 /f
 
 if %ERRORLEVEL% EQU 0 (
     echo.

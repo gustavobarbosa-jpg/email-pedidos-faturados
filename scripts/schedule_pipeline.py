@@ -9,8 +9,9 @@ import sys
 import os
 from datetime import datetime
 
-# Adicionar src ao path
-sys.path.insert(0, 'src')
+# Adicionar o diretório raiz ao path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 from src.orchestration.pipeline import PipelineOrchestrator
 from src.utils.logger import pipeline_logger
@@ -76,7 +77,6 @@ def main():
     print("🚀 INICIANDO SCHEDULER DO PIPELINE")
     print("⏰ Agendado para rodar todos os dias às 09:00")
     print("🧪 Para teste manual com equipe 200, use: python schedule_pipeline.py --test")
-    print("🛑 Para parar, pressione Ctrl+C")
     print("=" * 50)
     
     # Agendar pipeline diário às 09:00

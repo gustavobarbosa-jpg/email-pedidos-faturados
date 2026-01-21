@@ -1,237 +1,446 @@
-# Pipeline de Relatórios por Email
+# Pipeline de Relatórios de Pedidos Faturados
 
-[![CI/CD](https://github.com/gustavobarbosa/email-pedidos-faturados/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/gustavobarbosa/email-pedidos-faturados/actions)
-[![codecov](https://codecov.io/gh/gustavobarbosa/email-pedidos-faturados/branch/main/graph/badge.svg)](https://codecov.io/gh/gustavobarbosa/email-pedidos-faturados)
+[![CI/CD](https://github.com/gustavobarbosa-jpg/email-pedidos-faturados/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/gustavobarbosa-jpg/email-pedidos-faturados/actions)
+[![codecov](https://codecov.io/gh/gustavobarbosa-jpg/email-pedidos-faturados/branch/main/graph/badge.svg)](https://codecov.io/gh/gustavobarbosa-jpg/email-pedidos-faturados)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Windows](https://img.shields.io/badge/Platform-Windows-lightgrey)](https://www.microsoft.com/windows)
 
-## Visão Geral
+## 🎯 Objetivo Principal
 
-Este é um pipeline profissional de Engenharia de Dados que extrai dados de modelos semânticos do Power BI, os transforma de acordo com regras de negócio e entrega relatórios personalizados para gerentes via email.
+Este pipeline automatiza completamente o processo de extração, transformação e envio de relatórios de pedidos faturados para gerentes de equipes, eliminando trabalho manual e garantindo entregas consistentes e pontuais.
 
-## Arquitetura
+### 📊 Problema Resolvido
 
-A solução segue um padrão de arquitetura em camadas:
+- **Manual**: Gerentes precisavam acessar sistemas manualmente para ver seus pedidos
+- **Demorado**: Processo manual levava horas para compilar dados
+- **Inconsistente**: Dados podiam variar dependendo de quando eram extraídos
+- **Custo**: Tempo gasto pelos gerentes e equipe de TI
 
+### 🚀 Solução Implementada
+
+- **Automático**: Executa todos os dias às 09:00 AM sem intervenção humana
+- **Consistente**: Todos os gerentes recebem dados do mesmo momento
+- **Completo**: Inui pedidos faturados e pendentes com análise detalhada
+- **Seguro**: Validação do modelo semântico antes de executar
+
+---
+
+## 🔍 Como o Pipeline Funciona
+
+### 📋 Etapa 1: Validação do Modelo Semântico
+
+**O que faz**: Verifica se o modelo semântico do Power BI foi atualizado hoje
+
+**Por que é importante**: Garante que estamos trabalhando com dados frescos
+
+**Como funciona**:
+1. Conecta-se à API do Power BI usando Azure AD
+2. Executa consulta DAX na tabela `UltimaAtualizacao`
+3. Compara a data extraída com a data atual
+4. **Se datas coincidirem** → Pipeline continua
+5. **Se datas não coincidirem** → Envia alerta e para execução
+
+**Regras impostas**:
+- ✅ Modelo deve ser atualizado no mesmo dia
+- ⚠️ Se não estiver atualizado, envia email para gustavo.barbosa@vilanova.com.br
+- 🛑 Pipeline não executa com dados desatualizados
+
+---
+
+### 📋 Etapa 2: Extração de Dados dos Gerentes
+
+**O que faz**: Lê a lista de gerentes e suas equipes do arquivo Excel
+
+**Fonte de dados**: `data/raw/dGerentes.xlsx`
+
+**Informações extraídas**:
+- Nome do gerente
+- Código da equipe
+- Email do gerente
+- Outros dados de configuração
+
+**Regras impostas**:
+- ✅ Arquivo deve existir e estar acessível
+- ✅ Estrutura deve conter colunas obrigatórias
+- ✅ Email deve ser válido para envio
+
+---
+
+### 📋 Etapa 3: Extração de Pedidos do Power BI
+
+**O que faz**: Busca todos os pedidos para cada equipe no Power BI
+
+**Como funciona**:
+1. Para cada gerente/equipe:
+   - Conecta-se ao Power BI via API
+   - Executa consulta DAX complexa
+   - Filtra por equipe específica
+   - Aplica filtros de negócio
+
+**Consulta DAX utilizada**:
+```dax
+EVALUATE
+SUMMARIZECOLUMNS(
+    'fPedidos'[Empresa],
+    'dCalendario'[MesAtual],
+    'dEmpresas'[Empresa],
+    KEEPFILTERS(FILTER('dEmpresas', 'dEmpresas'[Empresa] IN {1, 10, 11, 12, 14}))
+)
 ```
-├── src/
-│   ├── extract/          # Camada de extração de dados
-│   ├── transform/        # Camada de transformação de dados  
-│   ├── delivery/         # Camada de entrega por email
-│   ├── orchestration/    # Orquestração do pipeline
-│   ├── config/          # Gerenciamento de configuração
-│   └── utils/           # Utilitários comuns
-├── data/               # Diretórios de dados
-├── logs/               # Arquivos de log
-├── tests/              # Testes unitários
-└── docs/               # Documentação
-```
 
-## Funcionalidades
+**Regras de negócio impostas**:
+- ✅ **Empresas válidas**: Apenas {1, 10, 11, 12, 14}
+- ✅ **Mês atual**: Apenas pedidos do mês corrente
+- ✅ **Filtro por equipe**: Cada gerente vê apenas sua equipe
+- ✅ **Colunas obrigatórias**: Empresa, Data, Status, Valor, etc.
 
-- **Separação de Responsabilidades**: Separação clara entre extração, transformação e entrega
-- **Escalabilidade**: Pode lidar com múltiplos gerentes e equipes de forma eficiente
-- **Observabilidade**: Logging abrangente e rastreamento de erros
-- **Confiabilidade**: Lógica de retry e tratamento de erros em todo o sistema
-- **Segurança**: Gerenciamento centralizado de credenciais
-- **Manutenibilidade**: Código limpo e modular com documentação adequada
+---
 
-## Instalação
+### 📋 Etapa 4: Transformação e Limpeza de Dados
 
-1. Clone o repositório
-2. Instale as dependências:
+**O que faz**: Processa e organiza os dados brutos do Power BI
+
+**Transformações aplicadas**:
+
+1. **Limpeza de colunas**:
+   - Padronização de nomes (snake_case)
+   - Remoção de espaços e caracteres especiais
+   - Conversão de tipos de dados
+
+2. **Aplicação de regras de negócio**:
+   - Filtro por empresas válidas
+   - Filtro por mês atual
+   - Cálculo de campos derivados
+
+3. **Segmentação inteligente**:
+   - **Pedidos Faturados**: Status = "Faturado"
+   - **Pedidos Pendentes**: Status ≠ "Faturado"
+
+4. **Cálculos automáticos**:
+   - Total de registros
+   - Valor total ingressado
+   - Quantidade por status
+   - Estatísticas por empresa
+
+**Regras impostas**:
+- ✅ Dados devem estar limpos e padronizados
+- ✅ Segregação clara entre faturados e pendentes
+- ✅ Cálculos precisos de valores
+- ✅ Validação de integridade dos dados
+
+---
+
+### 📋 Etapa 5: Geração de Relatórios Excel
+
+**O que faz**: Cria arquivos Excel profissionais com múltiplas abas
+
+**Estrutura do Excel**:
+
+**Aba 1: PedidosFaturados**
+- Todos os pedidos com status "Faturado"
+- Colunas: Empresa, Data, Pedido, Cliente, Valor, etc.
+- Formatação profissional com cabeçalhos
+- Filtros automáticos para fácil análise
+
+**Aba 2: PedidosPendentes**
+- Todos os pedidos com status diferente de "Faturado"
+- Mesmas colunas da aba de faturados
+- Destaque visual para status diferentes
+
+**Estatísticas incluídas**:
+- Total de registros por aba
+- Valor total ingressado
+- Quantidade de empresas únicas
+- Data/hora de geração
+
+**Regras impostas**:
+- ✅ Formato .xlsx padrão
+- ✅ Múltiplas abas organizadas
+- ✅ Cabeçalhos claros e formatados
+- ✅ Filtros automáticos habilitados
+- ✅ Arquivo temporário (apagado após envio)
+
+---
+
+### 📋 Etapa 6: Envio Automático de Emails
+
+**O que faz**: Envia emails personalizados para cada gerente
+
+**Processo de envio**:
+
+1. **Para cada gerente**:
+   - Compor email personalizado
+   - Anexar arquivo Excel gerado
+   - Enviar via SMTP (Gmail)
+   - Registrar log de envio
+
+2. **Conteúdo do email**:
+   - **Assunto**: "📋 Relatório Equipe [XXX] - [Nome Gerente]"
+   - **Corpo**: Resumo estatístico e informações
+   - **Anexo**: Arquivo Excel completo
+   - **Personalização**: Nome e equipe do gerente
+
+3. **Especial para Equipe 200**:
+   - Email enviado para gustavo.barbosa@vilanova.com.br
+   - Cópia automática também enviada
+   - Aviso de não responder no corpo
+
+**Regras impostas**:
+- ✅ Email personalizado para cada gerente
+- ✅ Anexo obrigatório com dados completos
+- ✅ Formatação profissional do corpo
+- ✅ Tratamento de erros de envio
+- ✅ Logs detalhados de todas as tentativas
+
+---
+
+### 📋 Etapa 7: Orquestração e Monitoramento
+
+**O que faz**: Coordena todas as etapas e monitora a execução
+
+**Coordenação**:
+- Execução sequencial de todas as etapas
+- Tratamento de erros em cada fase
+- Continuação mesmo se um gerente falhar
+- Registro completo de estatísticas
+
+**Monitoramento**:
+- Logs estruturados com timestamps
+- Métricas de performance
+- Taxa de sucesso/fracasso
+- Tempo total de execução
+
+**Estatísticas finais**:
+- Gerentes processados
+- Registros totais
+- Faturados vs Pendentes
+- Valor total ingressado
+- Taxa de sucesso
+
+---
+
+## 🎛️ Regras de Negócio e Validações
+
+### 📊 Regras de Dados
+
+1. **Empresas Válidas**
+   - Apenas empresas: {1, 10, 11, 12, 14}
+   - Outras empresas são ignoradas
+
+2. **Período Temporal**
+   - Apenas mês corrente
+   - Data de hoje como referência
+
+3. **Segmentação**
+   - Faturados: Status = "Faturado"
+   - Pendentes: Qualquer outro status
+
+### 🔐 Regras de Segurança
+
+1. **Autenticação**
+   - Azure AD para Power BI
+   - App Password para Gmail
+   - Credenciais em variáveis de ambiente
+
+2. **Validação**
+   - Modelo semântico deve estar atualizado
+   - Arquivos de configuração devem existir
+   - Emails devem ser válidos
+
+### ⚡ Regras de Performance
+
+1. **Limites**
+   - Timeout de 30 segundos por requisição
+   - Máximo de 3 tentativas de envio
+   - Limpeza automática de arquivos temporários
+
+2. **Logging**
+   - Todos os passos registrados
+   - Erros com stack trace completo
+   - Contexto em todas as mensagens
+
+---
+
+## 📈 Benefícios e Impactos
+
+### 🎯 Para os Gerentes
+
+- **Economia de tempo**: Não precisam mais buscar dados manualmente
+- **Consistência**: Todos recebem dados do mesmo momento
+- **Completude**: Informações detalhadas e organizadas
+- **Pontualidade**: Recebem sempre no mesmo horário
+
+### 🏢 Para a Empresa
+
+- **Eficiência**: Redução drástica de trabalho manual
+- **Confiabilidade**: Processo automatizado e validado
+- **Escalabilidade**: Fácil adicionar novas equipes
+- **Compliance**: Logs completos para auditoria
+
+### 🔧 Para a TI
+
+- **Manutenção**: Código limpo e documentado
+- **Monitoramento**: Logs detalhados e métricas
+- **Flexibilidade**: Fácil ajuste de regras
+- **Segurança**: Sem senhas no código
+
+---
+
+## 🚀 Instalação e Configuração
+
+### 📋 Pré-requisitos
+
+- Python 3.8 ou superior
+- Conta no Azure AD com permissões Power BI
+- Conta Gmail com App Password
+- Arquivo dGerentes.xlsx com dados dos gerentes
+
+### 🔧 Configuração
+
+1. **Clonar repositório**:
+   ```bash
+   git clone https://github.com/gustavobarbosa-jpg/email-pedidos-faturados.git
+   cd email-pedidos-faturados
+   ```
+
+2. **Instalar dependências**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Configure as variáveis de ambiente no `.env`:
-   ```env
-   TENANT_ID=seu_tenant_id
-   CLIENT_ID=seu_client_id
-   CLIENT_SECRET=seu_client_secret
-   POWER_BI_SCOPE=https://analysis.windows.net/powerbi/api/.default
-   WORKSPACE_ID=seu_workspace_id
-   SEMANTIC_MODEL_ID=seu_semantic_model_id
-   EMAIL=seu_email@gmail.com
-   password_app=sua_senha_app
+3. **Configurar ambiente**:
+   ```bash
+   cp config/.env.example .env
+   # Editar .env com suas credenciais
    ```
 
-## Uso
+4. **Validar configuração**:
+   ```bash
+   python main.py --validate
+   ```
 
-### Uso Básico (Todos os Gerentes)
+### 🚀 Execução
+
+**Modo de teste (equipe 200)**:
+```bash
+python main.py --teams 200
+```
+
+**Modo de produção (todas as equipes)**:
 ```bash
 python main.py
 ```
 
-### Equipes Específicas
+**Scheduler automático**:
 ```bash
-python main.py --teams 200 300 400
+python scripts/schedule_pipeline.py
 ```
 
-### Modo Validação (Sem Envio de Email)
+**Serviço Windows**:
 ```bash
-python main.py --validate
+scripts/install_service.bat    # Executar como Administrador
 ```
 
-### Modo Validação para Equipes Específicas
-```bash
-python main.py --teams 200 --validate
+---
+
+## 📁 Estrutura do Projeto
+
+```
+├── main.py              # Ponto de entrada principal
+├── requirements.txt     # Dependências Python
+├── src/                 # Código fonte do pipeline
+│   ├── extract/          # Extração de dados (Power BI, Excel)
+│   ├── transform/        # Transformação e limpeza
+│   ├── delivery/         # Envio de emails
+│   ├── orchestration/    # Orquestração do pipeline
+│   ├── config/          # Configurações e constantes
+│   └── utils/           # Utilitários (logging, validação)
+├── scripts/             # Scripts de automação
+├── config/              # Arquivos de configuração
+├── docs/                # Documentação completa
+├── data/                # Diretórios de dados
+│   ├── raw/             # Arquivos de entrada
+│   ├── temp/            # Arquivos temporários
+│   └── processed/       # Arquivos processados
+├── logs/                # Logs de execução
+└── tests/               # Testes automatizados
 ```
 
-### Logging Detalhado
-```bash
-python main.py --verbose
+---
+
+## 🔄 Fluxo de Dados
+
+```
+Power BI → Extração → Transformação → Excel → Email → Gerente
+    ↑           ↓           ↓        ↓       ↓
+Validação ← Orquestração ← Logs ← Monitoramento ← Estatísticas
 ```
 
-## Configuração
+---
 
-### Regras de Negócio
-- **Empresas Válidas**: [1, 10, 11, 12, 14] (configurável em `src/config/settings.py`)
-- **Filtro de Mês Atual**: Ativado por padrão
-- **Status Faturado**: "Faturado" (usado para segmentação de dados)
+## 🛠️ Tecnologias Utilizadas
 
-### Templates de Email
-Os templates de email são centralizados em `src/config/settings.py` e podem ser personalizados:
-- Linhas de assunto
-- Conteúdo do corpo
-- Variáveis de personalização
+- **Python 3.8+**: Linguagem principal
+- **Power BI API**: Extração de dados
+- **Azure AD**: Autenticação
+- **Pandas**: Manipulação de dados
+- **OpenPyXL**: Geração de Excel
+- **SMTPlib**: Envio de emails
+- **Schedule**: Agendamento
+- **StructLog**: Logging estruturado
 
-### Consultas DAX
-As consultas DAX são parametrizadas e configuráveis:
-- Filtragem dinâmica de equipes
-- Filtragem de empresas
-- Filtragem de datas
+---
 
-## Fluxo de Dados
+## 📝 Logs e Monitoramento
 
-1. **Extrair**: 
-   - Ler gerentes do arquivo Excel
-   - Extrair pedidos do Power BI usando consultas DAX
+### 📋 Estrutura de Logs
 
-2. **Transformar**:
-   - Limpar e padronizar nomes de colunas
-   - Aplicar regras de negócio e filtros
-   - Segmentar dados por status (Faturados vs Pendentes)
-
-3. **Entregar**:
-   - Criar arquivos Excel com múltiplas abas
-   - Compor emails personalizados
-   - Enviar com lógica de retry
-
-4. **Orquestrar**:
-   - Coordenar todos os passos
-   - Lidar com erros e retries
-   - Registrar progresso e estatísticas
-
-## Tratamento de Erros
-
-O pipeline inclui tratamento abrangente de erros:
-- Retentativas de conexão para API do Power BI
-- Retentativas de envio de email
-- Verificações de validação de dados
-- Degradação graceful
-
-## Logging
-
-Logging estruturado com:
-- Rotação de arquivos (10MB, 5 backups)
-- Saída no console
-- Informações de contexto
-- Rastreamento de erros
-
-## Desenvolvimento
-
-### Executando Testes
-```bash
-pytest tests/ -v --cov=src
+```
+2026-01-20 09:00:00,123 - pipeline - INFO - Starting pipeline: pipeline_20260120_090000
+2026-01-20 09:00:01,456 - pipeline - INFO - Semantic model validation passed
+2026-01-20 09:00:02,789 - pipeline - INFO - Processing manager 1/19 | Context: {'team_code': 200}
+2026-01-20 09:00:05,012 - pipeline - INFO - Email sent successfully | Context: {'recipient': 'gerente@empresa.com'}
 ```
 
-### Formatação de Código
-```bash
-black src/ tests/
-```
+### 📊 Métricas Disponíveis
 
-### Verificação de Tipos
-```bash
-mypy src/
-```
+- Tempo total de execução
+- Gerentes processados com sucesso
+- Taxa de erro por etapa
+- Volume de dados processados
+- Performance do Power BI API
 
-### Análise Estática
-```bash
-flake8 src/ tests/
-```
+---
 
-## Monitoramento
+## 🔄 Manutenção e Operação
 
-### Métricas Chave
-- Tempo de execução do pipeline
-- Taxas de sucesso/falha
-- Volumes de dados processados
-- Padrões de erro
+### 📅 Tarefas Semanais
 
-### Arquivos de Log
-- Localização: `logs/pipeline.log`
-- Rotação: Automática
-- Formato: Estruturado com timestamps
+- [ ] Executar teste com equipe 200
+- [ ] Verificar logs de erros
+- [ ] Validar espaço em disco
+- [ ] Backup do arquivo dGerentes.xlsx
 
-## Segurança
+### 📅 Tarefas Mensais
 
-- Credenciais armazenadas em variáveis de ambiente
-- Nenhum segredo hardcoded no código
-- Transmissão segura de email (SSL/TLS)
-- Limpeza de arquivos temporários
+- [ ] Atualizar dependências Python
+- [ ] Revisar regras de negócio
+- [ ] Analisar métricas de performance
+- [ ] Documentar novas funcionalidades
 
-## Considerações de Performance
+### 🚨 Alertas e Incidentes
 
-- Capacidade de processamento paralelo (pronto para implementação)
-- Manipulação eficiente de dados com pandas
-- Operações de arquivo conscientes de memória
-- Pool de conexões pronto
+- **Modelo desatualizado**: Email automático para suporte
+- **Falha de envio**: Tentativas automáticas com retry
+- **Erro crítico**: Pipeline para e registra erro completo
 
-## Melhorias Futuras
-
-1. **Processamento Paralelo**: Processar múltiplos gerentes concorrentemente
-2. **Armazenamento em Banco**: Armazenar histórico e resultados de processamento
-3. **Integração API**: API REST para gerenciamento do pipeline
-4. **Dashboard**: Interface de monitoramento em tempo real
-5. **Agendamento Avançado**: Automação baseada em cron
-6. **Verificações de Qualidade de Dados**: Regras de validação aprimoradas
-
-## Solução de Problemas
-
-### Problemas Comuns
-
-1. **Falhas de Autenticação**
-   - Verifique as credenciais do Azure AD
-   - Verifique as permissões da API
-   - Certifique-se de que o tenant ID está correto
-
-2. **Falhas no Envio de Email**
-   - Verifique a senha do app Gmail
-   - Verifique as configurações SMTP
-   - Certifique-se de que SSL está ativado
-
-3. **Problemas na Extração de Dados**
-   - Valide a conexão com Power BI
-   - Verifique o ID do modelo semântico
-   - Verifique a sintaxe da consulta DAX
-
-4. **Problemas de Acesso a Arquivos**
-   - Verifique as permissões dos arquivos
-   - Verifique se os caminhos existem
-   - Certifique-se de que há espaço em disco
-
-### Modo Debug
-Execute com logging detalhado para solução de problemas detalhada:
-```bash
-python main.py --verbose --validate
-```
+---
 
 ## 📊 Repositório GitHub
 
 ### 🌐 Link do Projeto
-- **Repositório**: https://github.com/gustavobarbosa/email-pedidos-faturados
+- **Repositório**: https://github.com/gustavobarbosa-jpg/email-pedidos-faturados
 - **Issues**: Reporte bugs e sugira melhorias
 - **Wiki**: Documentação detalhada
 - **Releases**: Versões estáveis
@@ -260,5 +469,10 @@ python main.py --verbose --validate
 Para problemas e dúvidas:
 1. Verifique os logs em `logs/pipeline.log`
 2. Execute o modo de validação primeiro
-3. Revise as configurações
+3. Revise as configurações no arquivo .env
 4. Verifique o status da API do Power BI
+5. Contacte o suporte técnico
+
+---
+
+**Este pipeline representa uma solução completa e profissional para automação de relatórios, eliminando trabalho manual e garantindo entregas consistentes e pontuais para todos os gerentes da organização.**

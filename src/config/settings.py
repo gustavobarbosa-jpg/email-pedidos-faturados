@@ -131,6 +131,9 @@ class EmailTemplates:
         
         Este relatório contém apenas os dados da sua equipe, filtrados pelo mês atual.
         
+        ⚠️ IMPORTANTE: O e-mail é disparado automaticamente, gentileza não responder.
+        Para dúvidas, chame no WhatsApp: (35) 99825-3791 - Gustavo
+        
         Atenciosamente,
         Sistema automático de Relatórios
         """

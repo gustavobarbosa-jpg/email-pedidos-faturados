@@ -6,6 +6,6 @@ echo.
 echo Executando pipeline apenas para equipe 200...
 echo.
 
-python schedule_pipeline.py --test
+python scripts\schedule_pipeline.py --test
 
 pause

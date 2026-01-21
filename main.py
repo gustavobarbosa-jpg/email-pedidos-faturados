@@ -1,12 +1,3 @@
-"""
-Main entry point for the email reports pipeline.
-
-This module provides:
-- Command-line interface
-- Pipeline execution
-- Error handling
-- Configuration management
-"""
 
 import sys
 import argparse
